@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" style="background-color:whitesmoke;">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="../src/assets/daeguLogoShort.png">
+    <title>스마트시티-긴급 메시지 전송 시스템</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css">
+  
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="http://map.ngii.go.kr/emap/js/map/OpenLayers.js"></script>
+    
+    <!--<script type="text/javascript" src="./OpenLayers.js"></script>-->
+    <script type="text/javascript" src="http://map.ngii.go.kr/openapi/wmts_ngiiMap.js?apikey=27E37D81817739C5664F52645E7192F9"></script>
+    <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="./proj4-src.js"></script>
+    <!--
+    <script type="text/javascript">
+      const eventListenerOptionsSupported = () => {
+        let supported = false;
+      
+        try {
+          const opts = Object.defineProperty({}, 'passive', {
+            get() {
+              supported = true;
+            }
+          });
+      
+          window.addEventListener('test', null, opts);
+          window.removeEventListener('test', null, opts);
+        } catch (e) {}
+      
+        return supported;
+      }
+      
+      const defaultOptions = {
+        passive: false,
+        capture: false
+      };
+      const supportedPassiveTypes = [
+        'scroll', 'wheel',
+        'touchstart', 'touchmove', 'touchenter', 'touchend', 'touchleave',
+        'mouseout', 'mouseleave', 'mouseup', 'mousedown', 'mousemove', 'mouseenter', 'mousewheel', 'mouseover'
+      ];
+      const getDefaultPassiveOption = (passive, eventName) => {
+        if (passive !== undefined) return passive;
+      
+        return supportedPassiveTypes.indexOf(eventName) === -1 ? false : defaultOptions.passive;
+      };
+      
+      const getWritableOptions = (options) => {
+        const passiveDescriptor = Object.getOwnPropertyDescriptor(options, 'passive');
+      
+        return passiveDescriptor && passiveDescriptor.writable !== true && passiveDescriptor.set === undefined
+          ? Object.assign({}, options)
+          : options;
+      };
+      
+      const overwriteAddEvent = (superMethod) => {
+        EventTarget.prototype.addEventListener = function (type, listener, options) {
+          const usesListenerOptions = typeof options === 'object' && options !== null;
+          const useCapture          = usesListenerOptions ? options.capture : options;
+      
+          options         = usesListenerOptions ? getWritableOptions(options) : {};
+          options.passive = getDefaultPassiveOption(options.passive, type);
+          options.capture = useCapture === undefined ? defaultOptions.capture : useCapture;
+      
+          superMethod.call(this, type, listener, options);
+        };
+      
+        EventTarget.prototype.addEventListener._original = superMethod;
+      };
+      
+      const supportsPassive = eventListenerOptionsSupported();
+      
+      if (supportsPassive) {
+        const addEvent = EventTarget.prototype.addEventListener;
+        overwriteAddEvent(addEvent);
+      }
+    </script>
+  -->
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <div id="app" ></div>
+    <!-- built files will be auto injected -->
+  </body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>스마트시티-긴급메시지전송</title>
+<style type="text/css">
+@import url(http://fonts.googleapis.com/earlyaccess/nanumgothic.css); /*크롬등을 위한 구글 웹 폰트*/
+
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, p, 
+form, fieldset, input, th, td{
+    margin:0;
+    padding:0;font-family:'NanumGothic', '나눔고딕','NanumGothicWeb', '맑은 고딕', 'Malgun Gothic', Dotum, Verdana, AppleGothic, Sans-Serif;
+     -webkit-text-size-adjust:none;
+}
+input:focus{outline:none;}
+select:focus{outline:none;}
+textarea:focus{outline:none;}
+
+body{background-color:#f2f2f2;width:100%;min-width:1100px;}
+.topGroup{background-color:#303a59;padding:15px;}
+.topGroup .tx1{color:#ffffff;font-size:16pt;}
+.right{float:right;}
+.center{text-align:center;}
+.topMargin{margin-top:18px;}
+
+.bodyBox{text-align:center;width:100%;}
+.boxSet{background-color:#ffffff;border-radius: 10px;box-shadow: 2px 2px 7px 0px #e2e2e2;padding:10px;}
+.bodyTbl{width:100%;border-spacing:0;table-layout:fixed;overflow:hidden;padding:15px;}
+.bodyTbl tr td{vertical-align:top;}
+.boxTitle{color:#61709e;font-size:14pt;text-align:left;padding-bottom:7px;}
+.boxMap{width:100%;height:625px;border: 1px solid #dbdbe5;}
+
+.btnLogout input{
+ padding:10px 20px 10px 20px;
+ margin-left:2px;
+ font-size:12pt;
+ color:#505050;
+ font-weight:normal;
+ background-color: #ffffff;
+ border: none;
+ border-radius: 20px;
+ box-shadow: 0 0px #232d4b;
+}
+
+.btnLogout input:hover{
+ background-color: #c4d3e2;
+ cursor:pointer;
+}
+  
+.btnLogout input:active,
+.btnLogout input.active{
+ background-color: #232d4b;
+ box-shadow: 0 0px #232d4b;
+ transform: translateY(1px);  
+}
+
+.btnNormal input{
+ padding:10px 0px 10px 0px;
+ width:100%;
+ font-size:12pt;
+ color:#ffffff;
+ font-weight:normal;
+ background-color: #59627f;
+ border: none;
+ border-radius: 5px;
+ box-shadow: 0 0px #232d4b;
+}
+
+.btnNormal input:hover{
+ background-color: #3f4a6c;
+ cursor:pointer;
+}
+  
+.btnNormal input:active,
+.btnNormal input.active{
+ background-color: #3f4a6c;
+ box-shadow: 0 0px #232d4b;
+ transform: translateY(1px);  
+}
+
+.alertTxt{background-color:#f5f1ea;height:80px;width:270px;text-align:center;vertical-align:middle;display:table-cell;}
+.alertTxt .txtDate{color:#ff0000;font-size:14pt;}
+.alertTxt .txtTitle{color:#ff0000;font-size:16pt;font-weight:600;margin-top:3px;}
+.boxPoint ul{list-style:none;}
+.boxPoint ul li{display:inline-block;padding:5px;}
+
+.boxPoint ul .boxBlue{background-color:#ecf5f9;border: 1px solid #deecf2;}
+.boxPoint ul .blueTxt{color:#5d73c3;font-size:12pt;padding:0px 0 5px 0;}
+
+.boxGraph{background-color:#ecf5f9;border: 1px solid #deecf2;padding:5px;height:180px;}
+.txtCount{width:120px;text-align:center;font-size:20pt;color:#404146;font-weight:600;}
+.txtCountBlue{width:120px;text-align:center;font-size:20pt;color:#006be6;font-weight:600;}
+.txtCountRed{width:120px;text-align:center;font-size:20pt;color:#f47300;font-weight:600;}
+.txtInputNormal{
+ height:32px;
+ font-size:12pt;
+ border-style:none;
+ border-radius: 5px;
+ border:1px solid #deecf2;
+ font-family:'NanumGothic', '나눔고딕','NanumGothicWeb', '맑은 고딕';
+ padding-left:5px;
+ color:#022e56;	
+}
+
+.txtInputNormal:focus{border: 1px solid #b2dbed;}
+
+.fix-container-allborder{
+ border-right: 1px solid #cecece;
+ border-left: 1px solid #cecece;
+ border-bottom: 1px solid #cecece;
+ border-top: 2px solid #c9d2de;
+ position: relative;
+ padding-top: 25px; /* header-bg height값 */
+ background-color:#fff;
+}
+.header-bg{
+ background: #eef0f1;
+ height: 25px; /* header-bg height값 */
+ position: absolute;
+ top: 0;
+ right: 0;
+ left: 0;  
+}
+.table-wrapper{overflow-x: hidden;overflow-y: auto;height: 100%;}
+.tablefix{width: 100%;border-collapse: collapse;}
+
+.tablefix td {
+ border-bottom: 1px solid #dee3f3;
+ padding:4px;		
+ font-size:11pt;
+ font-weight:normal;
+ color:#4b4b4b;
+ text-align:left;
+ vertical-align:middle;
+}
+	
+.tablefix td img{vertical-align:middle;}
+
+.tdleftbar{border-left: 1px solid #dee3f3; }
+.tablefix th { padding: 0px; }
+.tablefix .th-text {
+ position: absolute;
+ top: 0;
+ width: inherit;
+ line-height: 25px; /* header-bg height값 */
+ border-left: 1px solid #dee3f3;
+ font-size:10pt;
+ font-weight:normal;
+ color:#404146;	
+ text-align:center;
+ }
+.tablefix th:first-child .th-text { border-left: none;}
+.tablefix .txcenter{text-align:center;}
+.tdcolor td {background-color:#eef3f9;}
+.tablefix tbody tr:nth-child(even){background-color: #eef3f9;}
+.txtOverflowHidden /*말줄임*/
+{
+    white-space: nowrap;            
+    overflow: hidden;              /* "overflow" value must be different from "visible" */ 
+    -o-text-overflow: ellipsis;    /* Opera under 10.7 */
+    text-overflow:  ellipsis;    /* IE, Safari */
+    padding-right:10px;
+	padding-left:5px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="topGroup">
+	<span class="tx1">Segment 긴급 메시지 전송 시스템</span>
+	<span class="right" style="margin-top:-7px;"><span class="btnLogout" ><input type="button"  value="로그아웃"/></span></span>
+</div>
+<div class="bodyBox">
+	<table class="bodyTbl">
+		<colgroup>
+			<col />
+			<col style="width:300px;" />
+		</colgroup>
+		<tr>
+			<td style="padding:0px 10px 0px 0px;">
+				<div class="boxSet">
+					<div class="boxTitle">재난발생위치</div>
+					<div class="boxMap"></div>
+				</div>
+			</td>
+			<td style="padding:0px 0px 0px 10px;">
+				<div class="boxSet">
+					<div class="boxTitle">재난발생위치</div>
+					<div class="alertTxt">
+						<div class="txtDate">2020-00-00 15:15:11</div>
+						<div class="txtTitle">[경사지붕괴][심각]</div>
+						
+					</div>
+					
+					<div class="boxTitle topMargin">발생 좌표</div>
+					<div class="boxPoint">
+						<ul>
+							<li class="boxBlue">
+								<div class="blueTxt center">위도</div>
+								<div><input type="text" class="txtInputNormal center"  value="32.5555" placeholder="" style="width:113px;" readonly /></div>
+							</li>
+							<li class="boxBlue">
+								<div class="blueTxt center">경도</div>
+								<div><input type="text" class="txtInputNormal center"  value="32.5555" placeholder="" style="width:113px;" readonly /></div>
+							</li>
+						</ul>
+					</div>
+					
+					<div style="margin-top:10px;">
+						<span class="btnNormal" ><input type="button"  value="세그먼트 상세보기"/></span>
+						</div>			
+					<div class="boxTitle topMargin">선택지역 사용자 통계</div>
+					<div class="boxGraph">
+					그래프 자리
+					</div>
+					<div class="boxPoint" style="margin-top:5px;">
+						<ul>
+							<li class="boxBlue">
+								<div class="blueTxt center">세그먼트 수</div>
+								<div class="txtCount">100</div>
+							</li>
+							<li class="boxBlue">
+								<div class="blueTxt center">전체 대상자(명)</div>
+								<div class="txtCount">100</div>
+							</li>							
+						</ul>
+					</div>
+					<div class="boxPoint" style="margin-top:5px;">
+						<ul>
+							<li class="boxBlue">
+								<div class="blueTxt center">수신 정상(명)</div>
+								<div class="txtCountBlue">100</div>
+							</li>
+							<li class="boxBlue">
+								<div class="blueTxt center">미수신(명)</div>
+								<div class="txtCountRed">100</div>
+							</li>							
+						</ul>
+					</div>		
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td colspan='2' style="padding-top:20px;">
+			<div class="boxSet">
+				<div class="boxTitle">사용자 리스트(2)</div>
+				<!--세로 스크롤만 있는 테이블임. 가로스크롤 필요시 연락바람. ...으로 줄임표시 해둠 -->
+				<div class="fix-container-allborder" style="width:100%;height:105px;">
+					<div class="header-bg"></div>
+					<div class="table-wrapper">
+						<table class="tablefix" style="table-layout:fixed;">
+							<thead>
+							<tr>
+							<th style="width:40px;"> <div class="th-text">번호</div></th>
+							<th style="width:180px;"> <div class="th-text">재난발생일시</div></th>
+							<th style="width:200px;"> <div class="th-text">사용자ID</div></th>
+							<th style="width:150px;"> <div class="th-text">재난종류</div></th>
+							<th style="width:100px;"> <div class="th-text">위험단계</div></th>
+							<th style=""> <div class="th-text" style="padding-left:10px;">문안</div></th>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="txcenter">1</td>
+									<td class="txcenter tdleftbar">2020-08-05- 11:15:15</td>
+									<td class="txcenter tdleftbar">DFDDSDSDFUJ23SEFDF</td>
+									<td class="txcenter tdleftbar">경사지붕괴</td>
+									<td class="txcenter tdleftbar">심각</td>
+									<td class="tdleftbar txtOverflowHidden">메시지는 모두 표시됩니다. txtOverflowHidden로 말줄임표 넣어두었음 가로스크롤 필요시 요청바람 </td>
+								</tr>
+								<tr>
+									<td class="txcenter">1</td>
+									<td class="txcenter tdleftbar">2020-08-05- 11:15:15</td>
+									<td class="txcenter tdleftbar">DFDDSDSDFUJ23SEFDF</td>
+									<td class="txcenter tdleftbar">경사지붕괴</td>
+									<td class="txcenter tdleftbar">심각</td>
+									<td class="tdleftbar txtOverflowHidden">메시지는 모두 표시됩니다. txtOverflowHidden로 말줄임표 넣어두었음 가로스크롤 필요시 요청바람 </td>
+								</tr>
+								<tr>
+									<td class="txcenter">1</td>
+									<td class="txcenter tdleftbar">2020-08-05- 11:15:15</td>
+									<td class="txcenter tdleftbar">DFDDSDSDFUJ23SEFDF</td>
+									<td class="txcenter tdleftbar">경사지붕괴</td>
+									<td class="txcenter tdleftbar">심각</td>
+									<td class="tdleftbar txtOverflowHidden">메시지는 모두 표시됩니다. txtOverflowHidden로 말줄임표 넣어두었음 가로스크롤 필요시 요청바람 </td>
+								</tr>
+								<tr>
+									<td class="txcenter">1</td>
+									<td class="txcenter tdleftbar">2020-08-05- 11:15:15</td>
+									<td class="txcenter tdleftbar">DFDDSDSDFUJ23SEFDF</td>
+									<td class="txcenter tdleftbar">경사지붕괴</td>
+									<td class="txcenter tdleftbar">심각</td>
+									<td class="tdleftbar txtOverflowHidden">메시지는 모두 표시됩니다. txtOverflowHidden로 말줄임표 넣어두었음 가로스크롤 필요시 요청바람 </td>
+								</tr>
+								<tr>
+									<td class="txcenter">1</td>
+									<td class="txcenter tdleftbar">2020-08-05- 11:15:15</td>
+									<td class="txcenter tdleftbar">DFDDSDSDFUJ23SEFDF</td>
+									<td class="txcenter tdleftbar">경사지붕괴</td>
+									<td class="txcenter tdleftbar">심각</td>
+									<td class="tdleftbar txtOverflowHidden">메시지는 모두 표시됩니다. txtOverflowHidden로 말줄임표 넣어두었음 가로스크롤 필요시 요청바람 </td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				
+			</div>
+			</td>
+		</tr>
+	</table>	
+</div>
+
+
+</body>
+
+</html>
