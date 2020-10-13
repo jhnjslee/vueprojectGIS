@@ -1,30 +1,13 @@
 <template>
-  <div>
-      <h2>Log In</h2>
-      <form @submit="onSubmit">
-          <input placeholder="Enter your ID" v-model="uid">
-          <input placeholder="Enter your password" v-model="password">
-          <button type="submit">Login</button>
-      </form>
-  </div>
+    <div>
+    <h1>123123</h1>
+    </div>
+   
 </template>
-
 <script>
 export default {
-  name: 'Login',
-  data: () => ({
-    uid: '',
-    password: ''
-  }),
-  methods: {
-    onSubmit () {
-      console.log(this.uid)
-      console.log(this.password)
+    created(){
+        console.log("시작")
     }
-  }
 }
 </script>
-
-<style>
-
-</style>

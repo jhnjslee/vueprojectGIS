@@ -3,28 +3,22 @@ import Vuex from 'vuex'
 //import getters from './getters'
 //import actions from './mutations'
 import 'es6-promise/auto'
-import loginAPI from '../service/loginAPI'
-import actions from './actions'
 import constants from "../constants"
-import * as types from './mutation_types'
 
 
 Vue.use(Vuex)
 
-const state = {
-  uid: '',
-  errorState: '',
-  isAuth: false
-}
 
 
 export default new Vuex.Store({
-  actions,
   state: {
     constants: constants,
     pointX : 0,
     pointY : 0,
     websocketStatus: "disconnected",
+    currentCalNumber : "",
+    sendingCalState : "",
+    spinnerState : false
   },
   getters:{
       CONSTANTS: state=>{
@@ -33,14 +27,21 @@ export default new Vuex.Store({
       getStatus(state){
         return state.websocketStatus;
       },
-      getUid: state => state.uid,
-      getErrorState: state => state.errorState,
-      getIsAuth: state => state.isAuth
-  },
+
+      getCalNumb(state){
+        return state.currentCalNumber;
+      },
+      getSendingState(state){
+        return state.sendingCalState;
+      },
+      getSpinnerState(state){
+        return state.sendingCalState;
+      },
+    },
   mutations: {
     pointCalibration(x,y){
       pointX = x;
-      pointY =y;
+      pointY = y;
     },
     changeState(state,changer) {
       if(changer==0){
@@ -50,19 +51,31 @@ export default new Vuex.Store({
         state.websocketStatus="connected"
       }
     },
-    [types.UID] (state, uid) {
-      state.uid = uid
+    changeCalamity(state,changeArray) {
+      state.sendingCalState=changeArray[0];
+      state.currentCalNumber=changeArray[1];
     },
-    [types.ERROR_STATE] (state, errorState) {
-      state.errorState = errorState
+    changeSpinnerState(state,changerindex) {
+      if(changerindex==0){
+        state.spinnerState=true
+      }
+      else if(changerindex==1){
+        state.spinnerState=false
+      }
+      
     },
-    [types.IS_AUTH] (state, isAuth) {
-      state.isAuth = isAuth
-    }
+
+  
   },
   actions: {
     changeStateAction(context,payload) {     //context로 store의 메서드와 속성 접근
       context.commit('changeState',payload);
+    },
+    changeCalStateAction(context,payload) {     //context로 store의 메서드와 속성 접근
+      context.commit('changeCalamity',payload);
+    },
+    changeSpinnerAction(context,payload) {     //context로 store의 메서드와 속성 접근
+      context.commit('changeSpinnerState',payload);
     },
     async login (store, {uid, password}) {
       /* 로그인은 백엔드를 다녀와야 하냐 비동기 처리를 한다 */
@@ -70,12 +83,5 @@ export default new Vuex.Store({
   },
   modules: {
   },
-  async login (uid, password) {
-    try {
-      const loginResponse = await loginAPI.login(uid, password)
-      return loginResponse
-    } catch (err) {
-      console.error(err)
-    }
-  }
+  
 })

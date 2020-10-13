@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" style="background-color:whitesmoke;">
+<html lang="en" style="background-color:#232d4b; overflow-y: hidden;">
   <head>
     <meta charset="utf-8">
+    <base href="/" /> 
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="icon" href="../src/assets/daeguLogoShort.png">
@@ -11,14 +12,18 @@
   
     <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script type="text/javascript" src="http://map.ngii.go.kr/emap/js/map/OpenLayers.js"></script>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
     
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
     <!--<script type="text/javascript" src="./OpenLayers.js"></script>-->
     <script type="text/javascript" src="http://map.ngii.go.kr/openapi/wmts_ngiiMap.js?apikey=27E37D81817739C5664F52645E7192F9"></script>
     <script src="https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
     <script src="./proj4-src.js"></script>
-    <!--
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    
     <script type="text/javascript">
       const eventListenerOptionsSupported = () => {
         let supported = false;
@@ -82,9 +87,9 @@
         overwriteAddEvent(addEvent);
       }
     </script>
-  -->
+  
   </head>
-  <body>
+  <body  font-family="'NanumGothic', '나눔고딕', 'NanumGothicWeb', '맑은 고딕'" style="background-color: #232d4b;">
     <noscript>
       <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>

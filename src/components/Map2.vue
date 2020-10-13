@@ -1,15 +1,33 @@
 <template>
 <div>
-	<div style="display: flex; flex-direction: row; justify-content:space-between;">
+	<div style="display:flex; flex-direction: row; justify-content:space-between;">
 		<button @click="reset" class="boxTitle" align="left">재난발생 위치</button>
-		<h5 class="textal" align="center">네트워크상태 : {{ this.$store.getters.getStatus }}</h5>
-		<h5 class="textal" align="right">현재 시간:{{date}} {{time}}</h5>
-		</div>
+	
+		<h5 class="textal" align="left">현재 시간 : {{date}} {{time}}</h5>
+	</div>
 		
-	<div id="map1">
+	<div id="map1">	
 		<div id="mouse-position"></div>
-		<div style="position:absolute;top:520px;right:10px;width:54px;height:100px;z-index:1000000;">
+		<div id="panel" style="position:absolute;top:520px;right:10px;width:54px;height:100px;z-index:1000000;">
+		<button id="testButton" class="btn btn-primary" @click="changesatellite" style="border:none; outline:none;">
+			<img src="../assets/satellite.png" style="width: 38px;" >
+			</button>
+			<div style='position:absolute;top:-510px;right:0px;width:220px;height:100px;z-index:1000000;'>	
+			<input type="checkbox" id="cal"  checked="checked" value="One" @click="visibilityC" v-bind:disabled="calcount == 0 ? true:false" >
+           	<label for="one"> 재난 </label>
+        	<input type="checkbox" id="seg" checked="checked" value="Two" @click="visibilityS"  v-bind:disabled="calcount == 0 ? true:false" >
+            <label for="two"> 세그먼트 </label>
+            <input type="checkbox" id="uid" checked="checked" value="Three" @click="visibilityU"  v-bind:disabled="uuidCount == 0 ? true:false" >
+            <label for="three"> 사용자</label>
+			</div>
+			<spinner :loading="LoadingStatus"></spinner>
 		</div>
+		<div style="position:absolute;top:15px;right:96%;width:54px;height:100px;z-index:9999;">
+			<button id="daeguButton" class="btn btn-primary" @click="gotoDaegu" style="border:none; outline:none;">
+			<img src="../assets/daeguLogoShort.png" style="width: 38px;" >
+			</button>
+		</div>
+	
 	</div>
 </div>
 </template>
@@ -25,31 +43,47 @@ import {
 	EventBus
 } from "./event-bus";
 import mapmarkerpng from "../assets/mapmarker.png"
-import peoplesCircle from "../assets/peoplesCircle.png"
 
+import peoplesCircle from "../assets/blackdot2.png"
+import satellite from "../assets/satellite.png"
 
-let map = ''
-let markers = ''
-let popup = ''
-let calamityList = new Array() //재난 배열 
-let uuidFeatures = new Array() //유저 배열
-let segmentList = new Array() //세그먼트 배열
-let segmentRadius = 100 //세그먼트 반지름 
-let segmentFeatures = new Array() //세그먼트의 feature(polygon)
+import Spinner from './Spinner';
+
+let map = '';
+let clustering = "";
+let markers = '';
+let popup = '';
+let calamityList = new Array(); //재난 배열 
+let uuidFeatures = new Array(); //유저 배열
+let segmentList = new Array(); //세그먼트 배열
+let segmentRadius = 100; //세그먼트 반지름 
+let segmentFeatures = new Array(); //세그먼트의 feature(polygon)
 let userMarkers = "";
 let segmentLayer = "";
 let vectorLayer = "";
+let centerlayer = "";
 let count = 0;
 export default {
 
 	props: ['pointX', 'pointY', 'radius', 'calLevel'],
-
+	components:{
+		Spinner
+	},
 	data() {
 		return {
+			LoadingStatus:false,
+			layerselect: '',
+			calview :false,
+			segview :false,
+			uuiview :false,
+			calviewcount :0,
+			segviewcount :0,
+			uuiviewcount :0,
 			
 			network : '',
 			message: '',
 			point: '',
+			calPrimary:'',
 			calDate: '',
 			lat: 0,
 			log: 0,
@@ -77,12 +111,12 @@ export default {
 				fillOpacity: 0.4,
 				fillColor: "yellow"
 			},
-			green_style: {
-				strokeColor: 'green',
+			blue_style: {
+				strokeColor: 'blue',
 				strokeOpacity: 1,
 				strokeWidth: 3,
 				fillOpacity: 0.4,
-				fillColor: "green"
+				fillColor: "blue"
 			},
 			segment_style: {
 				strokeColor: 'black',
@@ -91,6 +125,21 @@ export default {
 				fillOpacity: 0.1,
 				fillColor: "${black}"
 			}, //세그먼트 Style
+			linsStyle: {
+				strokeColor: 'black',
+				strokeOpacity: 0.5,
+				strokeWidth: 1,
+				fillOpacity: 0.5,
+				fillColor: "${black}"
+			}, //라인 Style
+			centerStyle:{
+				strokeColor: 'red',
+				strokeOpacity: 1.0,
+				strokeWidth: 1,
+				fillOpacity: 1.0,
+				fillColor: "${red}"
+				
+			},
 
 			calcount: 0,
 
@@ -114,11 +163,27 @@ export default {
 		}
 	},
 	created() {
+
+    	console.log("MAPCREATED")
+    	EventBus.$on('start:spinner', this.startSpinner);
+    	EventBus.$on('end:spinner', this.endSpinner);
+
 		//여기는 재난이 들어오는 곳 
 		EventBus.$on('use-eventbus', calIndex => {
 			if (count != 0) {
 				this.deleteF();
 			}
+			
+            setTimeout(()=> {console.log("Whats happen")}, 1000);
+			// this.LoadingStatus = true;
+			// setTimeout(this.startSpinner(),2000)
+      		// EventBus.$emit('start:spinner'); 
+			var cal = document.getElementById("cal")
+			cal.checked=true;
+			var seg = document.getElementById("seg")
+			seg.checked=true;
+						
+			this.calPrimary = calIndex.calNum;
 			this.lat = calIndex.lat * 1;
 			this.log = calIndex.log * 1;
 			this.radius2 = calIndex.radius * 1;
@@ -128,31 +193,31 @@ export default {
 			this.message = calIndex.context;
 
 			switch (this.level) {
-				case "1":
+				case "심각":
 					vectorLayer = new OpenLayers.Layer.Vector("Overlay", {
 						styleMap: new OpenLayers.StyleMap(
 							this.standard_style
 						)
 					});
 					break;
-				case "2":
+				case "경계":
 					vectorLayer = new OpenLayers.Layer.Vector("Overlay", {
 						styleMap: new OpenLayers.StyleMap(
 							this.orange_style
 						)
 					});
 					break;
-				case "3":
+				case "주의":
 					vectorLayer = new OpenLayers.Layer.Vector("Overlay", {
 						styleMap: new OpenLayers.StyleMap(
 							this.yellow_style
 						)
 					});
 					break;
-				case "4":
+				case "관심":
 					vectorLayer = new OpenLayers.Layer.Vector("Overlay", {
 						styleMap: new OpenLayers.StyleMap(
-							this.green_style
+							this.blue_style
 						)
 					});
 					break;
@@ -163,20 +228,37 @@ export default {
 					this.segment_style
 				)
 			});
+
+			
+			vectorLayer.setVisibility(true);
+			segmentLayer.setVisibility(true);
+
+			centerlayer = new OpenLayers.Layer.Vector("centerLay",{
+				styleMap: new OpenLayers.StyleMap(
+					this.centerStyle
+				)
+			});
+
 			this.drawMainCircle();
 			//this.drawMainMarker();
 			count++;
+			
+      		// EventBus.$emit('end:spinner'); 
 		});
+
 		EventBus.$on('use-eventbus-uuidTest', uuidList => {
 			this.uuidCount += 1
+			userMarkers.setVisibility(true);
+			var uuid = document.getElementById("uid")
+			uid.checked=true;
 			uuidFeatures = new Array();
 			for (var i = 0; i < uuidList.length; i++) {
 				var uuidindex = {
 					x: uuidList[i].uuidX,
 					y: uuidList[i].uuidY,
-					uuidcontainCal: 0,
 					uuidcontainseg: -1,
-					uuid: uuidList[i].uuidId
+					uuid: uuidList[i].uuidId,
+					userid : uuidList[i].userid
 				}
 				uuidFeatures.push(uuidindex);
 			}
@@ -186,47 +268,74 @@ export default {
 
 	},
 	mounted() {
+		
+    	console.log("MAPMOUNTED")
 		this.updateTime();
 		this.init();
 	},
 	computed: {},
 	methods: {
-		reset(){
-			this.deleteF();
+		visibilityC(){
+			if (vectorLayer.getVisibility() == true) {
+        		vectorLayer.setVisibility(false);
+    			} else {
+        		vectorLayer.setVisibility(true);
+    			}
+		},visibilityS(){
+			if (segmentLayer.getVisibility() == true) {
+        		segmentLayer.setVisibility(false);
+    			} else {
+        		segmentLayer.setVisibility(true);
+    			}
+		},visibilityU(){
+			if (userMarkers.getVisibility() == true) {
+        		userMarkers.setVisibility(false);
+    			} else {
+        		userMarkers.setVisibility(true);
+    			}
 		},
-
+		startSpinner(){
+			console.log("스피너 시작 ")
+      		this.LoadingStatus = true;
+    	},
+    	endSpinner(){
+      		this.LoadingStatus = false;
+    	},
 		init() {
+			OpenLayers.Map.prototype.isValidZoomLevel = function(zoomlevel){
+        //return null!=zoomlevel && 8<=zoomlevel && zoomlevel<this.getNumZoomLevels();  
+				return ((zoomlevel != null) &&
+						(zoomlevel >= 6) && 
+						(zoomlevel < this.getNumZoomLevels()));
+    		};
 			map = new ngii_wmts.map("map1", {
+				
 				controls: [],
 				projection: "EPSG:5179",
 				center: new OpenLayers.LonLat(1099472.79652, 1764427.68399),
-				zoom: 7,
-				numZoomLevels: 21,
+				zoom: 10,
+				//mapmode:3,
+				mapMode:0,
+				
+				numZoomLevels :10,
 				eventListeners: {
 					featureclick: function (e) {
-						console.log(e)
 						if (e.feature.layer.name == 'segmentlay') {
 							e.feature.renderIntent = "select";
 							var j = 0;
+							
 							for (j = 0; j < segmentList.length; j++) {
-								if (segmentList[j].segId == e.feature.id) {
+								var segcode = e.feature.id.split('_');
+								if (segmentList[j].segId == segcode[3]) {
 									//해당 세그먼트에 몇명이 있는지 확인 
 									if (popup) {
 										map.removePopup(popup)
-									}
-									var segcode = e.feature.id.split('_');
-									var countuuid = 0;
-
-									for (var l = 0; l < uuidFeatures.length; l++) {
-
-										if (uuidFeatures[l].uuidcontainseg == segmentList[j].segId)
-											countuuid++
 									}
 									var popuplocation = new OpenLayers.LonLat(segmentList[j].segLat, segmentList[j].segLog)
 									popup = new OpenLayers.Popup("chicken",
 										popuplocation,
 										new OpenLayers.Size(200, 60),
-										"세그먼트 번호 :" + segcode[3] + "<br>" + '<div style="color:#FF0000">포함 인원 :   ' + countuuid + "명", true);
+										"세그먼트 번호 : " + segmentList[j].segId + "<br>" + '<div style="color:#FF0000">재난 발생시 인원 :   ' + segmentList[j].segmentUserList.length + "명", true);
 
 									map.addPopup(popup);
 
@@ -237,13 +346,12 @@ export default {
 
 				}
 			});
-
+			map._addDefaultMapModeBox({right:"1300px", top:"500px"});
 			//지도 객체 생성 
-			map.addControl(new OpenLayers.Control.PanZoomBar());
 			map.addControl(new OpenLayers.Control.MousePosition());
-			map.addControl(new OpenLayers.Control.OverviewMap());
+			map.addControl(new OpenLayers.Control.ScaleLine());
 			map.addControl(new OpenLayers.Control.KeyboardDefaults());
-
+			
 			var control = new OpenLayers.Control();
 			OpenLayers.Util.extend(control, {
 				draw: function () {
@@ -262,38 +370,25 @@ export default {
 			});
 			map.addControl(control);
 
-
+			
+			
 			//map.controls[1].disableZoomWheel(); // disable the original behavior of
 
 			//create a new control//
 
-			var mousewheel = new OpenLayers.Control();
-			OpenLayers.Util.extend(mousewheel, {
-				// The draw method is called when the control is initialized
-				draw: function () {
-					this.mouse = new OpenLayers.Handler.MouseWheel(mousewheel, {
-						"up": mouseUp,
-						"down": mouseDown
-					});
-					this.mouse.activate();
-				}
-			});
+			
+			
+			// var strategy = new OpenLayers.Strategy.Cluster({
+		    // distance: 15 // <-- removed clustering flag
+			// });
+			// userMarkers = new OpenLayers.Layer.Vector("userMarkers", {strategies: [strategy]});
 
-			//add new control
-			map.addControl(mousewheel);
-			// change behavior of mouse wheel functions
-			function mouseUp() {
-				map.zoomTo(map.zoom + 1);
-			}
 
-			function mouseDown() {
-				if (map.zoom > 10) {
-					map.zoomTo(map.zoom - 1);
-				}
-			}
-
-			userMarkers = new OpenLayers.Layer.Markers("userMarkers");
-
+			userMarkers = new OpenLayers.Layer.Markers("userMarkers",{
+				 strategies: [
+					   new OpenLayers.Strategy.Cluster({distance: 30})
+				 ]
+				 });
 		},
 
 		drawMainCircle() {
@@ -301,12 +396,21 @@ export default {
 			var y = this.log;
 			var length = 0;
 			var count = 0;
+		
+			map.removePopup(popup)
 			//가장 큰 재난 원 
 			var point = new OpenLayers.Geometry.Point(x, y);
 			var mainCircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point, this.radius2, 36, 0);
 			var mainFeature = new OpenLayers.Feature.Vector(mainCircle);
-			console.log("Map says: " + mainFeature.id);
+			console.log("지도 그리기" + mainFeature.id);
+
 			vectorLayer.addFeatures(mainFeature)
+			
+			// var pointRight = new OpenLayers.Geometry.Point(x,y);
+			// var mainLine = OpenLayers.Geometry.Polygon.createRegularPolygon(point,20, 20, 0);
+			// var mainLineFeature = new OpenLayers.Feature.Vector(mainLine);
+			// 중앙 원 
+
 
 			this.calcount += 1;
 			var calamityIndex = {
@@ -565,40 +669,70 @@ export default {
 					length = 0;
 				}
 			}
+		//	centerlayer.addFeatures(mainLineFeature)
 
 			map.addLayer(vectorLayer);
 			map.addLayer(segmentLayer);
+			// map.addLayer(centerlayer);
+			
 			var pointZoom = new OpenLayers.LonLat(this.lat, this.log)
 			map.setCenter(pointZoom, 8)
 		
-				var segmentSendingList = [];
-				var countall = 0;
-				var countsub = 0;
+			var segmentSendingList = [];
+			var countall = 0;
+			var countsub = 0;
+			
 			for (var k = 0; k < uuidFeatures.length; k++) {
-			uuidFeatures[k].uuidcontainseg =-1;
+				uuidFeatures[k].uuidcontainseg =-1;
 			}
+			var calculateradius = calamityIndex.mainradius;
+			var calculateuuidList = new Array();
 
-				
+			for (var k = 0; k < uuidFeatures.length; k++) {
+			if((Math.sqrt(Math.abs((uuidFeatures[k].x - calamityIndex.mainlat) * (uuidFeatures[k].x - calamityIndex.mainlat)) + Math.abs((uuidFeatures[k].y - calamityIndex.mainlog) * (uuidFeatures[k].y - calamityIndex.mainlog))))< calamityIndex.mainradius+200){	
+				var calculateuuidIndex ={
+					x: uuidFeatures[k].x,
+					y: uuidFeatures[k].y,
+					uuidcontainseg: -1,
+					uuid: uuidFeatures[k].uuid,
+					userid : uuidFeatures[k].userid 
+				}
+					calculateuuidList.push(calculateuuidIndex);
+				}
+			}
+			
+			//모든 uuid리스트의 포함관계를 초기화 시킨다.
+				var p = ''
 				for (var j = 0; j < segmentFeatures.length; j++) {
 					if (segmentList[j].calIndex == calamityIndex.calId) {
-						// Polygon 안에 들어있는지 안들어있는지 판단하는 조건문
-						for (var k = 0; k < uuidFeatures.length; k++) {
-							var p = new OpenLayers.Geometry.Point(uuidFeatures[k].x, uuidFeatures[k].y);
-
+						// 모든 세그먼트중 해당 재난에 들어있는지 안들어있는지 판단
+						for (var k = 0; k < calculateuuidList.length; k++) {
+							//모든 uuid 중 
+							p = new OpenLayers.Geometry.Point(calculateuuidList[k].x, calculateuuidList[k].y);
 							if (segmentFeatures[j].geometry.intersects(p)) {
 								countall++;
-								if (uuidFeatures[k].uuidcontainseg == -1) {
-									segmentList[j].segmentUserList.push(uuidFeatures[k].uuid)
-									uuidFeatures[k].uuidcontainseg = segmentList[j].segId;
+
+								if (calculateuuidList[k].uuidcontainseg == -1) {
+									
+									var segmentUserIndex ={
+										uuid : "",
+										userid : ""
+									}
+									segmentUserIndex.uuid = calculateuuidList[k].uuid
+									segmentUserIndex.userid = calculateuuidList[k].userid
+						
+									segmentList[j].segmentUserList.push(segmentUserIndex)
+						
+									calculateuuidList[k].uuidcontainseg = segmentList[j].segId;
 									segmentSendingList.push(segmentList[j])
-								} 
-								
-								else if (uuidFeatures[k].uuidcontainseg != -1) {
+							
+								}
+								else if (calculateuuidList[k].uuidcontainseg != -1) {
 									for (var h = 0; h < segmentList.length; h++) {
-										if (segmentList[h].segId == uuidFeatures[k].uuidcontainseg) {
+										if (segmentList[h].segId == calculateuuidList[k].uuidcontainseg) {
 											//원래 들어있던게 다를 경우 
 											if (segmentList[j].segmentfromcalamity <= segmentList[h].segmentfromcalamity) {
-												uuidFeatures[k].uuidcontainseg = segmentList[j].segId;
+												calculateuuidList[k].uuidcontainseg = segmentList[j].segId;
 												countsub++;
 											}
 										}
@@ -609,27 +743,30 @@ export default {
 					}
 				}
 
-				
-
+				for (var k = 0; k < uuidFeatures.length; k++) {
+					for(var j=0; j< calculateuuidList.length;j++){
+						if(uuidFeatures[k].uuid==calculateuuidList[j].uuid){
+							uuidFeatures[k].uuidcontainseg = calculateuuidList[j].uuidcontainseg;
+							break;
+						}
+					}
+				}
 				var calamityAllinfo = {
 					targetUser: 0,
 					dangerUser: 0,
-					littledangerUser: 0,
-					normalUser: 0,
-					safeUser: 0,
+					callPri: this.calPrimary,
 					callat: calamityIndex.mainlat,
 					callon: calamityIndex.mainlog,
 					caldate: this.calDate,
 					callevel: this.level,
+					calRange: this.radius2,
 					calType: calamityIndex.mainType,
 					calNumber: this.calcount,
 					calMessageInfo: calamityIndex.calmessage,
-					uuidAllInfo: uuidFeatures,
+					uuidAllInfo: calculateuuidList,
 					segmentSendingFeature: segmentSendingList
 				}
 				EventBus.$emit("calamity-test", calamityAllinfo)
-			
-
 		},
 		pointer(xpoint,ypoint){
 			var point = new OpenLayers.Geometry.Point(xpoint, ypluspoint);
@@ -679,10 +816,11 @@ export default {
 
 		drawUUID(uuidFeatureList) {
 
-			var size = new OpenLayers.Size(10, 10);
+			map.addLayer(userMarkers);
+			var size = new OpenLayers.Size(5, 5);
 			var offset = new OpenLayers.Pixel(-(size.w / 2), -size.h);
-
 			var icon = new OpenLayers.Icon(peoplesCircle, size, offset);
+
 			userMarkers.clearMarkers()
 			if (null != userMarkers.markers) {
 				for (; 0 < userMarkers.markers;) {
@@ -694,13 +832,16 @@ export default {
 				userMarkers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(uuidFeatureList[i].x, uuidFeatureList[i].y), icon));
 				userMarkers.addMarker(new OpenLayers.Marker(new OpenLayers.LonLat(uuidFeatureList[i].x, uuidFeatureList[i].y), icon.clone()));
 			}
-			map.addLayer(userMarkers);
+			
+			
 		},
 		inputSegmentInList(calNum, latP, logP, segIdent) {
 			this.segcount++
+			var segcode = segIdent.split('_');
+			
 			var segmentIndex = {
 				segNum: this.segcount,
-				segId: segIdent,
+				segId: segcode[3],
 				callLevelIndex: this.level,
 				calRadiusIndex: this.radius2,
 				callTimeIndex: this.calDate,
@@ -712,7 +853,9 @@ export default {
 				segLat: latP,
 				segLog: logP,
 				segmentfromcalamity: 0,
+				segmentinsidepeople: 0,
 				segmentUserList: []
+
 			}
 			//외부노출용 세그먼트번호
 
@@ -724,12 +867,14 @@ export default {
 		deleteF() {
 			vectorLayer.removeAllFeatures();
 			segmentLayer.removeAllFeatures();
+			centerlayer.removeAllFeatures();
 			calamityList = new Array() //재난 배열 
 			segmentList = new Array() //세그먼트 배열
 			segmentFeatures = new Array() //세그먼트의 feature(polygon)
 			
 			segmentLayer = "";
 			vectorLayer = "";
+			centerlayer="";
 
 		},
 		updateTime() {
@@ -743,14 +888,39 @@ export default {
 				zero += '0';
 			}
 			return (zero + num).slice(-digit);
+		},
+		reset(){
+			this.deleteF();
+		},
+		changesatellite(){
+		
+			// var hGoogle = new OpenLayers.Layer.Google("Google Satellite",{
+			// type:google.maps.MapTypeId.SATELLITE});
+			// map.addLayer(hGoogle);
+			if(map._getMapMode()==9){
+				map._setMapMode(0);
+			}
+			else{
+				map._setMapMode(9);
+			}
+			
+		},
+		gotoDaegu(){
+		var center = new OpenLayers.LonLat(1099363.79652, 1764427.68399);
+		map.setCenter(center,5)
+		
 		}
-	}
+	},
+	beforeDestroy(){
+    EventBus.$off('start:spinner');
+    EventBus.$off('end:spinner');
+  },
 }
 </script>
 
 <style>
 #map1 {
- width:1538px;
+ width:100%;
  height:650px;
  position:relative;
  border: 0px solid #bcbcbc;
@@ -764,5 +934,80 @@ export default {
 }
 #clear-element {
   clear: both; /* or left */
+}
+.olControlScaleLine{
+	padding-left: 850px;
+}
+.ngiimap_mapmodebox{
+	right:84%;
+}
+/**
+ * Layer switcher
+ */
+.olControlLayerSwitcher {
+    position: absolute;
+    top: 25px;
+    right: 0;
+    width: 20em;
+    font-family: sans-serif;
+    font-weight: bold;
+    margin-top: 3px;
+    margin-left: 3px;
+    margin-bottom: 3px;
+    font-size: smaller;
+    color: white;
+    background-color: #303a59 !important;
+}
+
+.olControlLayerSwitcher .layersDiv {
+    padding-top: 5px;
+    padding-left: 10px;
+    padding-bottom: 5px;
+    padding-right: 10px;
+    background-color: #303a59 !important;
+}
+
+.olControlLayerSwitcher .layersDiv .baseLbl,
+.olControlLayerSwitcher .layersDiv .dataLbl {
+    margin-top: 3px;
+    margin-left: 3px;
+    margin-bottom: 3px;
+}
+
+.olControlLayerSwitcher .layersDiv .baseLayersDiv,
+.olControlLayerSwitcher .layersDiv .dataLayersDiv {
+    padding-left: 10px;
+}
+
+.olControlLayerSwitcher .maximizeDiv,
+.olControlLayerSwitcher .minimizeDiv {
+    width: 18px;
+    height: 18px;
+    top: 5px;
+    right: 0;
+    cursor: pointer;
+}
+
+.olBingAttribution {
+    color: #DDD;
+}
+.olBingAttribution.road {
+    color: #333;
+}
+
+.olGoogleAttribution.hybrid, .olGoogleAttribution.satellite {
+    color: #EEE;
+}
+.olGoogleAttribution {
+    color: #333;
+}
+span.olGoogleAttribution a {
+    color: #77C;
+}
+span.olGoogleAttribution.hybrid a, span.olGoogleAttribution.satellite a {
+    color: #EEE;
+}
+.olControlScaleLine{
+	right:10%;
 }
 </style>
