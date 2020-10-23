@@ -6,7 +6,7 @@
       <span class="right" style="margin-top:-7px;">
         <div class="example-modal-window">
   
-    <notifications group="notifyApp" position="center center"/>
+        <notifications group="notifyApp" position="center center"/>
     
           <div v-if="!loginCondition">
   
@@ -14,11 +14,6 @@
               <h1>'</h1>
             </button>
   
-            <v-btn class="mr-4" @click="requestUUIDinterval">통신 테스트</v-btn>
-            <v-btn class="mr-4" @click="sendTest">1.리스트</v-btn>
-            <v-btn class="mr-4" @click="makerandomlatlang">2.사용자</v-btn>
-            <v-btn class="mr-4" @click="drawCircleP">3.재난</v-btn>
-            
             <div v-if="modal">
 
               <MyModal @close="closeModal" v-if="modal" style="background: rgba(0,0,0,0.9);">
@@ -35,26 +30,17 @@
                     <input type="password" id="passP" v-model="passP" class="txtInputLogin" name="password"
                       placeholder="비밀번호 " style="width:300px;"  minlength="4"  maxlength="12" required/>
                   </div>
-                   <div style="padding: 15px 0 0 0;">
-                    <span class="btnPop"><input type="submit" class ="btnPop" value="로그인" /></span>
+
+                  <div style="padding: 15px 0 0 0;">
+                    <span class="btnPop">
+                      <input type="submit" class ="btnPop" value="로그인" />
+                    </span>
                   </div>
+                  
                   <div style="margin-top: 15px; color: red;">
                     {{logintry}}
                   </div>
                   </form>
-
-                  <!--
-                  <div>
-                    <input type="text" id="id" v-model="id" class="txtInputLogin" name="id" placeholder="아이디 "
-                      style="width:300px;" />
-                  </div>
-                  <div style="margin-top:5px;">
-                    <input type="password" id="pass" v-model="password" class="txtInputLogin" name="password"
-                      placeholder="비밀번호 " style="width:300px;" />
-                  </div>
-                  <div style="padding: 15px 0 0 0;">
-                    <span class="btnPop"><input type="button" @click="tryLogin" value="로그인" /></span>
-                  </div>-->
 
                 </div>
               </MyModal>
@@ -62,10 +48,13 @@
             </div>
           </div>
             <div v-if="loginCondition" display="flex">
-              <!--  <h3 style="font-weight:bold color:white;">{{id}}님 환영합니다.</h3>-->
+              
+              <span class="btnLogout">
+                <input type="button" @click="openSetting" value="환경설정" />
+              </span>
               <span class="btnLogout">
                 <input type="button" @click="openLogout" value="로그아웃" />
-                </span>
+              </span>
             </div>
         </div>
       </span>
@@ -89,6 +78,14 @@
           <SweetModalTab title="기능 설명" name="tab3" id="tab3"><img src="../src/assets/intro3.png" style="width: 950px;"></SweetModalTab>
           <SweetModalTab title="기능 설명" name="tab4" id="tab4"><img src="../src/assets/intro4.png" style="width: 950px;"></SweetModalTab>
           <input type='checkbox' name='chkbox' id='todaycloseyn' value='Y'> 오늘 하루 이 창을 열지 않음    
+      </SweetModal>
+
+      <SweetModal ref="setting" title="환경 설정" v-on:close="closeSetting()" >
+        	<SweetModalTab title="재난 설정" name="settab1" id="settab1"></SweetModalTab>
+	        <SweetModalTab title="지도 설정" name="settab2" id="settab2"></SweetModalTab>
+          <SweetModalTab title="네트워크 설정" name="settab3" id="settab3">
+            
+          </SweetModalTab>
       </SweetModal>
     </div>
 
@@ -150,9 +147,11 @@ let uuidshowList = new Array();
 let segmentshowList = new Array();
 let tts = '';
 let location = "";
-let loginresponse = "";
 let endOfCookie = "";
 let spinnerState = false;
+let location2 = document.location.href.substring(9);
+    
+"use strict"
 //listtabel 전용
 export default {
   name: 'App',
@@ -167,22 +166,65 @@ export default {
     Spinner,
   },
   mounted() {
-    console.log("APPMOUNTED")
-    location = document.location.href;
-    // this.connect();
     // document.write( ip() );
+    location = document.location.href;
+    location = location.slice(0,-1)
+
+    // location2 = location.substring(7)
+    // location2 = '192.168.0.3';
+    location2 = '158.181.17.81';
+
     
+
+    if(this.getCookie("logcook")!=""){
+      axios.post('http://'+location2+':80/newT',
+        {
+          token : this.getCookie("logcook2")
+        }).then((response) => {
+        console.log(response)
+        this.setCookie("logcook",response.data,1)
+        console.log("새로고침")
+        this.loginCondition = true;
+        this.connect(1)
+
+        setTimeout(()=> { // Code here 
+          this.closeModal()
+          console.log("쿠키 로그인")
+          this.$session.set('userID', this.idP);
+          this.idP = ""
+          this.passP = ""
+          this.message = "B$"
+          this.sendMessage(this.message)
+          this.loginCondition = true;
+          this.message = "C$"
+          this.sendMessage(this.message)
+          this.logintry ="";
+          //uuid 요청 프로토콜 
+          }, 1000);
+          this.requestUUIDinterval();
+
+        },(err) =>{
+            console.log('err', err)
+            
+        })
+    }
+    else if(this.getCookie("logcook")==""){
+      this.cookieRemove("logcook")
+      this.cookieRemove("logcook2")
+      this.openModal();
+    }
     this.openModal();
+   
   },
-  created() {
-    console.log("APPCREATE")
+  created() {     
+    this.logintry = "";
     spinnerState = this.$store.state.spinnerState;
     EventBus.$on('start:spinner', this.startSpinner);
     EventBus.$on('end:spinner', this.endSpinner);
   },
-
   data() {
     return {
+      
       valid: false,
       loginresponse : "",
       checkbox: false,
@@ -226,8 +268,7 @@ export default {
     }
   },
   methods: {
-    checkForm() {
-    },
+    
     openModal() {
       this.modal = true
     },
@@ -243,30 +284,29 @@ export default {
     endSpinner(){
       this.LoadingStatus = false;
     },
-    connect() {
-      // EventBus.$emit('start:spinner');  
-      var location2 = location.substring(7)
-     // socket = new WebSocket("ws://"+location2+"websocket");
-      // socket = new WebSocket("ws://192.168.0.3:8080/smart");
-      socket = new WebSocket("ws://158.181.17.81:8080/smart")
-      // socket = new WebSocket("wss://echo.websocket.org");
-      //소켓이 nulls
+    connect(flag) {
+     
+      console.log(this.getCookie("logcook"));
+
+
+      if(flag ==1 ){
+        socket = new WebSocket("ws://"+location2+":80/smart?token="+ this.getCookie("logcook"));
+      }
+      else if(flag == 2){
+        socket = new WebSocket("ws://"+location2+":80/smart?token="+ this.getCookie("logcook2"));  
+      }
 
       console.log('소켓 연결' + socket)
       
       socket.onopen = () => {
         this.status = "connected";
         
-        // this.LoadingStatus=true;
         this.$store.dispatch('changeStateAction', 1);
         this.logs.push({
           event: "연결 완료: ",
-          // data: "http://192.168.0.3:8080/socket"
-          // data: 'ws://'+location2+'/websocket'
-          // data: "ws://192.168.0.3:8080/smart"
-          data: "ws://158.181.17.81:8080/smart"
-          // data: 'wss://echo.websocket.org'
-
+          data: "ws://"+location2+":80/smart"
+          // data: "ws://158.181.17.79:80/smart"
+        
         }) //ip변경시 문제점 해결
         socket.onmessage = ({
           data
@@ -285,7 +325,6 @@ export default {
             this.$session.set()
             this.message = "B$"
             this.sendMessage(this.message)
-
 
             this.loginCondition = true;
             this.message = "C$"
@@ -307,10 +346,8 @@ export default {
               }
             }
             this.uuidCount++;
-            
             console.log("uuid리스트 수신")
             data = data.substr(2)
-            console.log(data)
             
             const obj = JSON.parse(data);
             uuidList = new Array();
@@ -341,19 +378,18 @@ export default {
            else if (temp == 'D$') {
             //this.$store.dispatch('changeSpinnerAction', 0);
             //EventBus.$emit('start:spinner');
-              this.LoadingStatus = true;
-              this.$forceUpdate();
-              this.noti1();
-              setTimeout(()=> { // Code here 
+            this.LoadingStatus = true;
+            this.$forceUpdate();
+            this.noti1();
+            setTimeout(()=> { // Code here 
                 
-              this.$nextTick(function () {
-             
-           
+            this.$nextTick(function () {
+            
             data = data.substr(2)
 
             const obj = JSON.parse(data);
             var calIndex = {
-              calNum: 0,
+              calNum: "",
               lat: 0,
               log: 0,
               radius: 0,
@@ -363,12 +399,12 @@ export default {
               context: ''
             }
 
-
             var a = Number(obj.info.lat); //35
             var b = Number(obj.info.lon); //128
             var wgs84 = proj4('EPSG:4326', 'EPSG:5179', [b, a]);
 
-            calIndex.calNum = obj.info.num;
+            // calIndex.calNum = obj.info.num;
+            calIndex.calNum = obj.info.eventId;
             calIndex.lat = wgs84[0];
             calIndex.log = wgs84[1];
 
@@ -420,7 +456,7 @@ export default {
                 segmentlist: []
               };
 
-              calamity_info.number = obj.jlist[i].num;
+              calamity_info.number = obj.jlist[i].eventId;
               calamity_info.calday = obj.jlist[i].occurDate;
               calamity_info.calType = obj.jlist[i].occurType;
               calamity_info.calLev = obj.jlist[i].dangerStep;
@@ -436,7 +472,7 @@ export default {
               calamity_info.sendall = obj.jlist[i].tcount;
               // 상태 리스트 
               for(var j =0;j<obj.info.length;j++){
-                if(obj.info[j].num == obj.jlist[i].num){
+                if(obj.info[j].eventId == obj.jlist[i].eventId){
                   calamity_info.calamity_state = obj.info[j].state
                 }
               }
@@ -461,12 +497,12 @@ export default {
                   }
 
                   segmentshowIndex.pri = obj.jlist[i].statelist[j].pri;
-                  segmentshowIndex.calId =  obj.jlist[i].num;
+                  segmentshowIndex.calId =  obj.jlist[i].eventId;
 
                   segmentshowList.push(segmentshowIndex)
                 }
 
-                if (obj.jlist[i].num == obj.jlist[i].statelist[j].num) {
+                if (obj.jlist[i].eventId == obj.jlist[i].statelist[j].eventId) {
                   var uuidInfo = {
                     calNum: "",
                     segmentId: "",
@@ -499,7 +535,14 @@ export default {
           this.LoadingStatus=false;
     },
     //----------------------------------------------------------------------
-
+    cookieRemove(_name) {
+            var expireDate = new Date();
+          
+            //어제 날짜를 쿠키 소멸 날짜로 설정한다.
+            expireDate.setDate( expireDate.getDate() - 1 );
+            document.cookie = _name + "= " + "; expires=" + expireDate.toGMTString() + "; path=/";
+            
+      },
     disconnect() {
       console.log('연결 종료')
       
@@ -560,45 +603,50 @@ export default {
     tryLogout() {
       this.$refs.logout.close();
       this.disconnect();
+      this.cookieRemove("logcook");
+      this.cookieRemove("logcook2");
       this.openModal();
     },
 
     //uuid를 자식으로 부터 받아오는곳
     parentsMethod: function (message) {
       var state = this.$store.state.sendingCalState;
+      console.log(state)
       var numb = this.$store.state.currentCalNumber;
       if (message == "reject") { //실패 프로토콜 
-        var value = 'f${"info":{"num":"' + numb + '",' + '"state":"' + state + '"}}';
+        var value = 'f${"info":{"eventId":"' + numb + '",' + '"state":"' + state + '"}}';
         this.message = String(value);
         this.sendMessage(this.message);
         this.message = "B$"
         this.sendMessage(this.message)
 
       } 
-      else if(state=="미확인"){
+      // else if(state=="미확인"){
         
-        var value = 'E${"info":{"num":"' + numb + '",' + '"state":"' + state + '"},' + '"Segment":' + JSON.stringify(message) + '}';
-        this.message = String(value);
-        this.sendMessage(this.message);
-        this.message = "B$"
-        this.sendMessage(this.message);
-
-      }
+      //   var value = 'E${"info":{"eventId":"' + numb + '",' + '"state":"' + state + '"},' + '"Segment":' + JSON.stringify(message) + '}';
+      //   this.message = String(value);
+      //   this.sendMessage(this.message);
+      //   this.message = "B$"
+      //   this.sendMessage(this.message);
+      // }
       else {
         var temp = JSON.stringify(message);
         var deserialize = JSON.parse(temp);
 
         var uuidtemplist = new Array();
         deserialize.forEach(function(element){
-          element.uuidlist.forEach(function(element2){
+          element.uuidList.forEach(function(element2){
             uuidtemplist.push(element2.uuid)          
           });
-          delete element.uuidlist              
-          element.uuidlist = uuidtemplist
+          delete element.uuidList         
+          element.uuidList = uuidtemplist
+          
         });
 
-        var value = 'F${"info":{"num":"' + numb + '",' + '"state":"' + state + '"},' + '"Segment":' + JSON.stringify(deserialize) + '}';
+        var value = 'F${"info":{"eventId":"' + numb + '",' + '"state":"' + state + '"},' + '"Segment":' + JSON.stringify(deserialize) + '}';
+        value = value.replaceAll("<br\/>","");
         
+
         this.message = String(value);
         this.sendMessage(this.message);
         this.message = "B$"
@@ -719,30 +767,39 @@ export default {
       EventBus.$emit("use-eventbus-uuidTest", uuidList)
     },
 
-    //리스트 테스트용 주의해서 편집 
-    sendTest() {
-
-    },
-
     loginSession(){
-          axios.post('http://158.181.17.81:8080/login',
-            {
+
+          axios.post('http://'+location2+':80/login',
+          {
              id: this.idP,
              password: this.passP
-           }
-          ).then((response) => {
+          }).then((response) => {
             console.log(response)
+            
+            //localStorage.setItem("logcook",response.data);
             if(this.idP=="" || this.passP==""){
               this.logintry="아이디 및 비밀번호가 잘못되었습니다.";
-            } //null 일대 
-            else if(response.data == '200'){
-              this.connect()
+            } 
+            else if(response.data == '1000'){
+              this.logintry="아이디 및 비밀번호가 잘못되었습니다.";
+            }
+            else if(response.data == null){
+              this.logintry="네트워크 통신 장애 잠시 후 다시 시도하세요.";
+              
+            }else{
 
+              const tokenarray = response.data.split("/");
+
+              this.setCookie( "logcook",tokenarray[0], 1 )
+              this.setCookie( "logcook2",tokenarray[1], 4 )
+
+
+              this.connect(1)
               setTimeout(()=> { // Code here 
                 this.closeModal()
+                this.$session.set('userID', this.idP);
                 this.idP = ""
                 this.passP = ""
-                this.$session.set()
                 this.message = "B$"
                 this.sendMessage(this.message)
                 this.loginCondition = true;
@@ -750,17 +807,11 @@ export default {
                 this.sendMessage(this.message)
                 this.logintry ="";
               //uuid 요청 프로토콜 
-              }, 1000);
-            this.$session.set('user_no', response.user_no)
+             }, 1000);
             this.requestUUIDinterval();
-             
-            } else if(response.data == '1000'){
-              this.logintry="아이디 및 비밀번호가 잘못되었습니다.";
-            }
-            else if(response.data == null){
-              this.logintry="네트워크 통신 장애 잠시 후 다시 시도하세요.";
-              
-            }   
+          
+            } 
+
           },(err) =>{
             console.log('err', err)
             this.logintry="네트워크 통신 장애 잠시 후 다시 시도하세요.";
@@ -781,60 +832,7 @@ export default {
       }, 300000);
     },
 
-    apiSample(){
-    $("#resultArea").html("");
-
-    $.ajax({
-        type: "GET",
-        url: "http://map.ngii.go.kr/openapi/search.xml",
-        data: {
-            target:"poi",
-            apikey:"iRZU9B0q0cc-Sli4OUVssw",
-            onePageRows:"10",
-            currentPage:"1",
-            keyword:"국토지리정보원"
-        },
-        dataType : "jsonp",
-        crossDomain:true,
-
-        success: function(result) {
-            var xmlData = jQuery.parseXML(result.xmlStr);
-            var header = $(xmlData).find("header");
-            var responseCode = header.find("responseCode").text();
-            var responseMessage = header.find("responseMessage").text();
-
-            if(responseCode!="0"&&responseCode!="100"){
-                $("#resultArea").html(responseMessage);
-            }else{
-                var htmlStr = "";
-                var poiArry = $(xmlData).find("contents").find("poi");
-                if(poiArry.length==0){
-                    $("#resultArea").html("검색결과가 없습니다.");
-                }else{
-                    htmlStr+="<table>";
-                    for(var i=0;i<poiArry.length;i++){
-                        htmlStr+="<tr>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("name").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("roadAdres").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("jibunAdres").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("zip").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("x").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("y").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("typeCode").text()+"</td>";
-                        htmlStr+="<td>"+$(poiArry[i]).find("typeName").text()+"</td>";
-                        htmlStr+="</tr>";
-                    }
-                    htmlStr+="</table>";
-                    $("#resultArea").html(htmlStr);
-                }
-            }
-          },
-        error : function(xhr, ajaxSettings, thrownError){
-        }
-    });
-
-    },
-
+    
     setCookie( name, value, expiredays ){
     var todayDate = new Date();
     todayDate.setDate( todayDate.getDate() + expiredays );
@@ -864,20 +862,26 @@ export default {
         if($("#todaycloseyn").prop("checked")){
             this.setCookie('divpop'+key, 'Y' , 1 );
         }
-    }
+    },
     
-  },
   beforeDestroy(){
     EventBus.$off('start:spinner');
     EventBus.$off('end:spinner');
   },
-
+  //환경설정 
+  openSetting(){
+    this.$refs.setting.open()
+  },
+  closeSetting(){
+  this.$refs.setting.close() 
+    }
+  }
 }
 </script>
 
 <style>
 @import url(http://fonts.googleapis.com/earlyaccess/nanumgothic.css);
-/*크롬등을 위한 구글 웹 폰트*/
+/*크롬등을 위한 구글 웹 폰트*/  
 body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,p,form,fieldset,input,th,
 td {
   margin: 0;

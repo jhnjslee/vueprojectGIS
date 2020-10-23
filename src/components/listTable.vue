@@ -7,41 +7,41 @@
           <table class="tablefix" style="table-layout:fixed;">
             <thead>
               <tr>
-                <th style="width:80px;">
-                  <div class="th-text">번호</div>
+                <th style="width:8%;">
+                  <div class="th-text">재난ID</div>
                 </th>
-                <th style="width:250px;">
+                <th style="width:10%;">
                   <div class="th-text">재난발생일시</div>
                 </th>
-                <th style="width:200px;">
+                <th style="width:6%;">
                   <div class="th-text">재난종류</div>
                 </th>
-                <th style="width:150px;">
+                <th style="width:5%;">
                   <div class="th-text">재난단계</div>
                 </th>
-                <th style="width:200px;">
+                <th style="width:10%;">
                   <div class="th-text">위도</div>
                 </th>
-                <th style="width:200px;">
+                <th style="width:10%;">
                   <div class="th-text">경도</div>
                 </th>
-                <th style="width:130px;">
+                <th style="width:8%;">
                   <div class="th-text">발신자(명)</div>
                 </th>
-                <th style="width:130px;">
+                <th style="width:8%;">
                   <div class="th-text">수신 성공(명)</div>
                 </th>
-                <th style="width:130px;">
+                <th style="width:8%;">
                   <div class="th-text">수신 실패(명)</div>
                 </th>
-                <th style="width:130px;">
+                <th style="width:8%;">
                   <div class="th-text">수신률</div>
                 </th>
-                <th style="width:100px;">
+                <th style="width:8%;">
                   <div class="th-text">전송상태</div>
                 </th>
-                <th>
-                  <div class="th-text" style="padding-left:30px;width:100px;">자세히</div>
+                <th style="width:10%">
+                  <div class="th-text">자세히</div>
                 </th>
               </tr>
             </thead>
@@ -78,7 +78,7 @@
                         <td align="left" width="100px">
                           <h3>재난 정보</h3>
                           <div background-color: lightblue>
-                          <p> 재난번호 :{{calnumb}}</p>
+                          <p> 재난ID :{{calnumb}}</p>
                           <p> 재난 전송 상태 : {{calshowstate}}
                           <p> 위도 : {{callat2}}</p>
                           <p> 경도 : {{callon2}}</p>
@@ -300,15 +300,12 @@ let allchecked = false;
     SweetModalTab
   },created(){
     
-    console.log("LISTCREATED")
       EventBus.$on('use-eventbus-calamityList', calamityList => {
       this.calamityList2.splice(0);
 
       this.calamityList2=calamityList;
        })},
     mounted(){
-      console.log("LISTMOUNTED")
-
       map =  new ngii_wmts.map("map2");
     },
 
@@ -498,9 +495,10 @@ let allchecked = false;
     resendlist(){
       var resendmessage ={
         resendlist : [],
+        eventId : "",
         message : ""
       }
-
+      resendmessage.eventId = this.calnumb;
       resendmessage.message = this.calmessage2;
       resendmessage.resendlist = this.checkedlist;
       console.log(resendmessage)

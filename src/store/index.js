@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 //import actions from './mutations'
 import 'es6-promise/auto'
 import constants from "../constants"
+import createPersistedState from "vuex-persistedstate";
 
 
 Vue.use(Vuex)
@@ -81,7 +82,8 @@ export default new Vuex.Store({
       /* 로그인은 백엔드를 다녀와야 하냐 비동기 처리를 한다 */
     },
   },
-  modules: {
+  modules: { 
   },
+ 
   
-})
+});

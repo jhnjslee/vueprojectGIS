@@ -222,7 +222,6 @@ export default {
   },
   created() {
     
-    console.log("CALAMITYCREATED")
     EventBus.$on('calamity-test', calamityAllinfo => {
 
       var cl = document.getElementById('calinfo');
@@ -282,6 +281,7 @@ export default {
       this.types = calamityAllinfo.calType
       this.dateTime = calamityAllinfo.caldate.toLocaleString()
 
+      //재난 종류 ?? 
       switch (this.types) {
         case "경사지 붕괴":
           this.caltypes = "경사지 붕괴"
@@ -289,6 +289,16 @@ export default {
         case "홍수":
           this.caltypes = "홍수"
           break;
+        case "Slope":
+          this.caltApypes = "경사지 붕괴"
+          break;
+        case "Flood":
+          this.caltypes = "홍수"
+          break;
+        case "Fire":
+          this.caltypes = "화재"
+          break;
+
         default:
       }
       switch (this.level) {
@@ -309,7 +319,9 @@ export default {
           cl.style.color = "#0080FF";
           break;
       }
-      this.directdoSend();
+      // this.directdoSend();
+      this.doSend();
+      
     });
 
     //그래프를 그리기 위해 비율을 받는 곳 
@@ -382,7 +394,6 @@ export default {
 
   mounted() {
 
-    console.log("CALAMITYMOUNTED")
   },
   methods: {
     openModal() {
@@ -405,9 +416,7 @@ export default {
 
     },
     //해당 재난의 발송상태를 NO 보내는것
-    directafetrSendNo() {
-
-    },
+    
     doSend() {
       //uuid 리스트 보내기 
       var sendingserverArray = new Array()
@@ -415,32 +424,34 @@ export default {
       for (var i = 0; i < this.segmentSendingList.length; i++) {
         var sendingserverIndex = {
 
-          segmentid: 0,
+          segmentId: 0,
           dangerStep: 0,
           dangerRange: 0,
           occurType: 0,
           occurDate: 0,
           lat: 0,
           lon: 0,
+          eventId: "",
           dangerMessage: "",
-          uuidlist: []
+          uuidList: []
         }
 
         var wgs84 = proj4('EPSG:5179', 'EPSG:4326', [this.segmentSendingList[i].callatIndex, this.segmentSendingList[i].callogIndex]);
 
         var changecal = ["전송", this.calpri]
         this.$store.dispatch('changeCalStateAction', changecal);
-        sendingserverIndex.segmentid = this.segmentSendingList[i].segId;
+        sendingserverIndex.segmentId = this.segmentSendingList[i].segId;
         sendingserverIndex.dangerStep = this.segmentSendingList[i].callLevelIndex;
         sendingserverIndex.dangerRange = this.segmentSendingList[i].calRadiusIndex;
         sendingserverIndex.occurType = this.segmentSendingList[i].mainType;
         sendingserverIndex.occurDate = this.segmentSendingList[i].callTimeIndex;
         sendingserverIndex.lat = wgs84[0];
         sendingserverIndex.lon = wgs84[1];
+        sendingserverIndex.eventId = this.calpri;
         sendingserverIndex.dangerMessage = this.message;
-        sendingserverIndex.uuidlist = this.segmentSendingList[i].segmentUserList;
-
-        if (sendingserverArray.findIndex(i => i.segmentid == sendingserverIndex.segmentid) == -1) {
+        sendingserverIndex.uuidList = this.segmentSendingList[i].segmentUserList;
+        //이부분 
+        if (sendingserverArray.findIndex(i => i.segmentId == sendingserverIndex.segmentId) == -1) {
           sendingserverArray.push(sendingserverIndex)
         }
       }
@@ -462,13 +473,14 @@ export default {
 
       for (var i = 0; i < this.segmentSendingList.length; i++) {
         var sendingserverIndex = {
-          segmentid: 0,
+          segmentId: 0,
           dangerStep: 0,
           dangerRange: 0,
           occurType: 0,
           occurDate: 0,
           lat: 0,
           lon: 0,
+          eventId : "",
           dangerMessage: "",
           uuidlist: []
         }
@@ -476,19 +488,20 @@ export default {
         var wgs84 = proj4('EPSG:5179', 'EPSG:4326', [this.segmentSendingList[i].callatIndex, this.segmentSendingList[i].callogIndex]);
 
 
-        var changecal = ["미확인", this.calpri]
+        var changecal = ["전송", this.calpri]
         this.$store.dispatch('changeCalStateAction', changecal);
-        sendingserverIndex.segmentid = this.segmentSendingList[i].segId;
+        sendingserverIndex.segmentId = this.segmentSendingList[i].segId;
         sendingserverIndex.dangerStep = this.segmentSendingList[i].callLevelIndex;
         sendingserverIndex.dangerRange = this.segmentSendingList[i].calRadiusIndex;
         sendingserverIndex.occurType = this.segmentSendingList[i].mainType;
         sendingserverIndex.occurDate = this.segmentSendingList[i].callTimeIndex;
         sendingserverIndex.lat = wgs84[0];
         sendingserverIndex.lon = wgs84[1];
+        sendingserverIndex.eventId = this.calpri;
         sendingserverIndex.dangerMessage = this.message;
         sendingserverIndex.uuidlist = this.segmentSendingList[i].segmentUserList;
 
-        if (sendingserverArray.findIndex(i => i.segmentid == sendingserverIndex.segmentid) == -1) {
+        if (sendingserverArray.findIndex(i => i.segmentId == sendingserverIndex.segmentId) == -1) {
           sendingserverArray.push(sendingserverIndex)
         }
       }
@@ -499,7 +512,6 @@ export default {
     openCheckModal() {
       this.$refs.checkmodal.open();
     },
-
     openCencelModal() {
       this.$refs.cencelModal.open();
     },

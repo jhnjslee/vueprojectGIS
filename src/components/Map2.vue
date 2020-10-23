@@ -2,13 +2,28 @@
 <div>
 	<div style="display:flex; flex-direction: row; justify-content:space-between;">
 		<button @click="reset" class="boxTitle" align="left">재난발생 위치</button>
-	
 		<h5 class="textal" align="left">현재 시간 : {{date}} {{time}}</h5>
 	</div>
 		
 	<div id="map1">	
-		<div id="mouse-position"></div>
-		<div id="panel" style="position:absolute;top:520px;right:10px;width:54px;height:100px;z-index:1000000;">
+		<div id="mouse-position">
+	</div>
+
+	<div id="panel" style="position: absolute;top:-5px;right: 500px;width: 402px;height:20px;z-index: 1000000;">
+	<!-- <v-text-field 
+	  id = "mapfind"
+      prepend-inner-icon="mdi-earth"
+      class="mx-2"
+      label="지도 검색"
+      rows="1"
+    >
+	</v-text-field>
+	<a href="apiSample()">검색 API</a>
+<div id="resultArea"></div>
+	 -->
+	</div>
+
+		<div id="panel" style="position:absolute;top:520px;right:10px;width:54px;height:100px;z-index:1000000;">			
 		<button id="testButton" class="btn btn-primary" @click="changesatellite" style="border:none; outline:none;">
 			<img src="../assets/satellite.png" style="width: 38px;" >
 			</button>
@@ -22,7 +37,7 @@
 			</div>
 			<spinner :loading="LoadingStatus"></spinner>
 		</div>
-		<div style="position:absolute;top:15px;right:96%;width:54px;height:100px;z-index:9999;">
+		<div style="position:absolute;top:15px;width:54px;height:100px;z-index:9999;">
 			<button id="daeguButton" class="btn btn-primary" @click="gotoDaegu" style="border:none; outline:none;">
 			<img src="../assets/daeguLogoShort.png" style="width: 38px;" >
 			</button>
@@ -164,7 +179,6 @@ export default {
 	},
 	created() {
 
-    	console.log("MAPCREATED")
     	EventBus.$on('start:spinner', this.startSpinner);
     	EventBus.$on('end:spinner', this.endSpinner);
 
@@ -174,7 +188,7 @@ export default {
 				this.deleteF();
 			}
 			
-            setTimeout(()=> {console.log("Whats happen")}, 1000);
+            setTimeout(()=> {  }, 1000);
 			// this.LoadingStatus = true;
 			// setTimeout(this.startSpinner(),2000)
       		// EventBus.$emit('start:spinner'); 
@@ -269,7 +283,6 @@ export default {
 	},
 	mounted() {
 		
-    	console.log("MAPMOUNTED")
 		this.updateTime();
 		this.init();
 	},
@@ -295,7 +308,6 @@ export default {
     			}
 		},
 		startSpinner(){
-			console.log("스피너 시작 ")
       		this.LoadingStatus = true;
     	},
     	endSpinner(){
@@ -332,21 +344,20 @@ export default {
 										map.removePopup(popup)
 									}
 									var popuplocation = new OpenLayers.LonLat(segmentList[j].segLat, segmentList[j].segLog)
+
 									popup = new OpenLayers.Popup("chicken",
 										popuplocation,
 										new OpenLayers.Size(200, 60),
 										"세그먼트 번호 : " + segmentList[j].segId + "<br>" + '<div style="color:#FF0000">재난 발생시 인원 :   ' + segmentList[j].segmentUserList.length + "명", true);
 
 									map.addPopup(popup);
-
 								}
 							}
 						}
 					}
-
 				}
 			});
-			map._addDefaultMapModeBox({right:"1300px", top:"500px"});
+			map._addDefaultMapModeBox({left:"1%", top:"500px"});
 			//지도 객체 생성 
 			map.addControl(new OpenLayers.Control.MousePosition());
 			map.addControl(new OpenLayers.Control.ScaleLine());
@@ -368,26 +379,11 @@ export default {
 					OpenLayers.Console.userError(bounds);
 				}
 			});
+
 			map.addControl(control);
 
-			
-			
-			//map.controls[1].disableZoomWheel(); // disable the original behavior of
-
-			//create a new control//
-
-			
-			
-			// var strategy = new OpenLayers.Strategy.Cluster({
-		    // distance: 15 // <-- removed clustering flag
-			// });
-			// userMarkers = new OpenLayers.Layer.Vector("userMarkers", {strategies: [strategy]});
-
-
 			userMarkers = new OpenLayers.Layer.Markers("userMarkers",{
-				 strategies: [
-					   new OpenLayers.Strategy.Cluster({distance: 30})
-				 ]
+				 strategies: [ new OpenLayers.Strategy.Cluster({distance: 30}) ]
 				 });
 		},
 
@@ -402,7 +398,7 @@ export default {
 			var point = new OpenLayers.Geometry.Point(x, y);
 			var mainCircle = OpenLayers.Geometry.Polygon.createRegularPolygon(point, this.radius2, 36, 0);
 			var mainFeature = new OpenLayers.Feature.Vector(mainCircle);
-			console.log("지도 그리기" + mainFeature.id);
+			console.log("Map drawing" + mainFeature.id);
 
 			vectorLayer.addFeatures(mainFeature)
 			
@@ -864,6 +860,62 @@ export default {
 			segmentIndex.segmentfromcalamity = Math.sqrt(Math.abs(dis_x * dis_x) + Math.abs(dix_y * dix_y))
 			segmentList.push(segmentIndex)
 		},
+		
+		apiSample(){
+    		$("#resultArea").html("");
+
+   		 $.ajax({
+        type: "GET",
+        url: "http://map.ngii.go.kr/openapi/search.xml",
+        data: {
+            target:"poi",
+            apikey:"27E37D81817739C5664F52645E7192F9",
+            onePageRows:"10",
+            currentPage:"1",
+            keyword:"국토지리정보원"
+        },
+        dataType : "jsonp",
+        crossDomain:true,
+
+        success: function(result) {
+            var xmlData = jQuery.parseXML(result.xmlStr);
+            var header = $(xmlData).find("header");
+            var responseCode = header.find("responseCode").text();
+            var responseMessage = header.find("responseMessage").text();
+
+            if(responseCode!="0" && responseCode!="100"){
+                $("#resultArea").html(responseMessage);
+            }else{
+                var htmlStr = "";
+                var poiArry = $(xmlData).find("contents").find("poi");
+                if(poiArry.length==0){
+                    $("#resultArea").html("검색결과가 없습니다.");
+                }else{
+                    htmlStr+="<table>";
+                    for(var i=0;i<poiArry.length;i++){
+                        htmlStr+="<tr>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("name").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("roadAdres").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("jibunAdres").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("zip").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("x").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("y").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("typeCode").text()+"</td>";
+                        htmlStr+="<td>"+$(poiArry[i]).find("typeName").text()+"</td>";
+                        htmlStr+="</tr>";
+                    }
+                    htmlStr+="</table>";
+                    $("#resultArea").html(htmlStr);
+                }
+            }
+          },
+        error : function(xhr, ajaxSettings, thrownError){
+        }
+    });
+
+    },
+
+		
 		deleteF() {
 			vectorLayer.removeAllFeatures();
 			segmentLayer.removeAllFeatures();
@@ -890,7 +942,7 @@ export default {
 			return (zero + num).slice(-digit);
 		},
 		reset(){
-			this.deleteF();
+		
 		},
 		changesatellite(){
 		
